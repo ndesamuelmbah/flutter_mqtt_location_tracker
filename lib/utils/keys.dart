@@ -36,6 +36,7 @@ class Keys {
   static const guarantor3 = 'guarantor3';
   static const testKey = 'testKey';
   static const trackingDeviceMedia = 'trackingDeviceMedia';
+  static const hasRegisteredToken = 'hasRegisteredToken';
   static const workingConfig = {
     "Version": "2012-10-17",
     "Id": "Policy1682906049905",

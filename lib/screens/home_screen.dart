@@ -4,9 +4,11 @@ import 'dart:isolate';
 
 // import 'package:background_fetch/background_fetch.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mqtt_location_tracker/api/api_requests.dart';
+import 'package:flutter_mqtt_location_tracker/firebase_auth/auth_handler.dart';
 import 'package:flutter_mqtt_location_tracker/firebase_auth/firebase_auth_bloc.dart';
 import 'package:flutter_mqtt_location_tracker/location.dart';
 import 'package:flutter_mqtt_location_tracker/models/device_location.dart';
@@ -15,9 +17,11 @@ import 'package:flutter_mqtt_location_tracker/models/tracking_device_media.dart'
 import 'package:flutter_mqtt_location_tracker/mqtt_handler/mqtt_handler.dart';
 import 'package:flutter_mqtt_location_tracker/screens/signin_with_phone_number.dart';
 import 'package:flutter_mqtt_location_tracker/screens/tracking_devices_media_list.dart';
+import 'package:flutter_mqtt_location_tracker/services/auth_service.dart';
 import 'package:flutter_mqtt_location_tracker/services/service_locator.dart';
 import 'package:flutter_mqtt_location_tracker/utils/general_utils.dart';
 import 'package:flutter_mqtt_location_tracker/utils/keys.dart';
+import 'package:flutter_mqtt_location_tracker/utils/toast_messages.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/action_button.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/default_center_container.dart';
 import 'package:geolocator/geolocator.dart';
@@ -431,15 +435,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 10),
                 ActionButton(
                     onPressed: () async {
-                      Map<String, dynamic> inputData = {
-                        'isAlarm': true,
-                        'isolateId': 2,
-                        'source': 'alarm'
-                      };
-                      final res = await ApiRequest.genericPostDict(
-                          'test_background',
-                          params: inputData);
-                      print(res);
+                      await FirebaseMessaging.instance.getToken().then((value) {
+                        print('Token is "$value"');
+                      });
+                      // Map<String, dynamic> inputData = {
+                      //   'isAlarm': true,
+                      //   'isolateId': 2,
+                      //   'source': 'alarm'
+                      // };
+                      // final res = await ApiRequest.genericPostDict(
+                      //     'test_background',
+                      //     params: inputData);
+                      // print(res);
                       // final timeStamp = DateTime.now().toUtc().millisecondsSinceEpoch;
                       // Map<String, dynamic> data = {
                       //   "timestamp": timeStamp,

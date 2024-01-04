@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_mqtt_location_tracker/models/firebase_auth_user.dart';
-import 'package:flutter_mqtt_location_tracker/utils/general_utils.dart';
 import 'package:flutter_mqtt_location_tracker/utils/keys.dart';
 import 'package:get_it/get_it.dart';
 

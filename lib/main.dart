@@ -42,22 +42,17 @@ import 'package:flutter_mqtt_location_tracker/models/envvars.dart';
 //flutter clean && flutter pub get && flutter build web --release && firebase deploy
 //The method below is used for communicating status of Customers.
 //This is only useful when customers are discussing with customer support.
+//flutter build apk --release --dart-define-from-file .env/envVars.json
 final audioPlayer = AudioPlayer();
 Future<void> playNotificationSound(RemoteMessage? message) async {
   if (message != null) {
     var data = message.data;
     if (!data.containsKey('s3Url')) {
-      String? sound = message.notification?.android?.sound;
-      var sounds = ['papaandmama', 'papaandshiphrah'];
-      if (sound.isNotNullAndNotEmpty || !sounds.contains(sound)) {
-        int seconds = DateTime.now().second;
-        String assetSound = seconds % 2 == 0
-            ? 'sounds/papaandmama.mp3'
-            : 'sounds/papaandshiphrah.mp3';
-        await audioPlayer.play(AssetSource(assetSound));
-      } else {
-        await audioPlayer.play(AssetSource('sounds/$sound.mp3'));
-      }
+      //String? sound = message.notification?.android?.sound;
+      var sounds = ['papaandmama', 'papaandshiphrah', 'papaonly'];
+      int index = DateTime.now().second % 3;
+      var sound = sounds[index];
+      await audioPlayer.play(AssetSource('sounds/$sound.mp3'));
     } else {
       await saveNotification(data);
     }
@@ -102,8 +97,18 @@ Future<void> saveNotification(Map<String, dynamic>? notificationData) async {
 }
 
 const AndroidNotificationChannel defaultChannel = AndroidNotificationChannel(
+    'papaonly', // id
+    "Notifications With Papa's Voice", // title
+    description:
+        'This channel is used for important notifications.', // description
+    importance: Importance.high,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('papaonly'),
+    enableLights: true);
+
+const AndroidNotificationChannel papaAndMama = AndroidNotificationChannel(
     'papaandmama', // id
-    'App Updates', // title
+    "Notifications With Papa and Mama's Voice", // title
     description:
         'This channel is used for important notifications.', // description
     importance: Importance.high,
@@ -114,7 +119,7 @@ const AndroidNotificationChannel defaultChannel = AndroidNotificationChannel(
 const AndroidNotificationChannel childrenNotificationChannel =
     AndroidNotificationChannel(
         'papaandshiphrah', // id
-        'New Message', // title
+        "Notifications With Shiphrah's Voice", // title
         description:
             'We use this channel to inform you when someone sends you a message on Duka Foods', // description
         importance: Importance.high,
@@ -124,10 +129,11 @@ const AndroidNotificationChannel childrenNotificationChannel =
 
 AndroidNotificationChannel getAndroidNotificationChannel(String sound) {
   var now = DateTime.now();
-  if (now.second % 2 == 0) {
-    return childrenNotificationChannel;
+  int index = now.second % 3;
+  if (index == 0) {
+    return defaultChannel;
   }
-  return defaultChannel;
+  return index == 1 ? childrenNotificationChannel : papaAndMama;
 }
 
 Future notifyOnlineStatus(FirebaseAuthUser user,
@@ -192,7 +198,11 @@ Future<void> setupFlutterLocalNotifications() async {
           sound: true,
         );
   } else if (Platform.isAndroid) {
-    var channelList = [childrenNotificationChannel, defaultChannel];
+    var channelList = [
+      childrenNotificationChannel,
+      defaultChannel,
+      papaAndMama
+    ];
     await Future.forEach(channelList,
         (AndroidNotificationChannel channel) async {
       await flutterLocalNotificationsPlugin

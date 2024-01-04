@@ -59,8 +59,10 @@ class AuthService {
         .then((value) => null);
     final lastLinkedPasswordHash = generalBox.get(Keys.lastLinkedPasswordHash);
     if (lastLinkedPasswordHash != passwordHash) {
-      String? deviceToken = generalBox.get(Keys.firebaseMessagingToken) ??
-          await FirebaseMessaging.instance.getToken();
+      String? deviceToken = await FirebaseMessaging.instance.getToken();
+      if (deviceToken == null) {
+        await generalBox.put(Keys.firebaseMessagingToken, deviceToken);
+      }
       await ApiRequest.genericPostDict('save_mosquitto_user', params: {
         "completeSignInMetaData": {
           'email': email,

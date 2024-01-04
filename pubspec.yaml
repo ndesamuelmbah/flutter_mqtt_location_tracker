@@ -141,6 +141,7 @@ flutter:
     - assets/images/splash.png
     - assets/sounds/papaandmama.mp3
     - assets/sounds/papaandshiphrah.mp3
+    - assets/sounds/papaonly.mp3
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
