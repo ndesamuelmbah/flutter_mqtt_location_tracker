@@ -49,7 +49,7 @@ Future<void> playNotificationSound(RemoteMessage? message) async {
     var data = message.data;
     if (!data.containsKey('s3Url')) {
       //String? sound = message.notification?.android?.sound;
-      var sounds = ['papaandmama', 'papaandshiphrah', 'papaonly'];
+      var sounds = ['wilsamsonnde', 'lansonnde', 'papaonly'];
       int index = DateTime.now().second % 3;
       var sound = sounds[index];
       await audioPlayer.play(AssetSource('sounds/$sound.mp3'));
@@ -107,24 +107,24 @@ const AndroidNotificationChannel defaultChannel = AndroidNotificationChannel(
     enableLights: true);
 
 const AndroidNotificationChannel papaAndMama = AndroidNotificationChannel(
-    'papaandmama', // id
+    'wilsamsonnde', // id
     "Notifications With Papa and Mama's Voice", // title
     description:
         'This channel is used for important notifications.', // description
     importance: Importance.high,
     playSound: true,
-    sound: RawResourceAndroidNotificationSound('papaandmama'),
+    sound: RawResourceAndroidNotificationSound('wilsamsonnde'),
     enableLights: true);
 
 const AndroidNotificationChannel childrenNotificationChannel =
     AndroidNotificationChannel(
-        'papaandshiphrah', // id
+        'lansonnde', // id
         "Notifications With Shiphrah's Voice", // title
         description:
             'We use this channel to inform you when someone sends you a message on Duka Foods', // description
         importance: Importance.high,
         playSound: true,
-        sound: RawResourceAndroidNotificationSound('papaandshiphrah'),
+        sound: RawResourceAndroidNotificationSound('lansonnde'),
         enableLights: true);
 
 AndroidNotificationChannel getAndroidNotificationChannel(String sound) {

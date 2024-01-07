@@ -140,6 +140,8 @@ flutter:
     - assets/images/launcher_icon.png
     - assets/images/splash.png
     - assets/sounds/papaandmama.mp3
+    - assets/sounds/wilsamsonnde.mp3
+    - assets/sounds/lansonnde.mp3
     - assets/sounds/papaandshiphrah.mp3
     - assets/sounds/papaonly.mp3
 
