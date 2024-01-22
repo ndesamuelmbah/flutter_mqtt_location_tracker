@@ -35,12 +35,7 @@ class TrackingDeviceMediaList extends StatelessWidget {
   List<Widget> _buildMediaList(BuildContext context) {
     // Sort the trackingDeviceMedias by date
     //trackingDeviceMedias.sort((a, b) => b.localTimeStamp.compareTo(a.localTimeStamp));
-    List<Widget> mediaWidgetList = [
-      ActionButton(
-        text: 'Refresh List',
-        onPressed: onRefreshList,
-      )
-    ];
+    List<Widget> mediaWidgetList = [];
     int numberOfWidgets = trackingDeviceMedias.length();
     int index = 0;
     List<TrackingDeviceMedia> mediaList = trackingDeviceMedias.media;
@@ -55,7 +50,7 @@ class TrackingDeviceMediaList extends StatelessWidget {
             color: Colors.grey[300],
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              '${currentMedia.localTimeStamp.day}/${currentMedia.localTimeStamp.month}/${currentMedia.localTimeStamp.year}',
+              shortDateFormat.format(currentMedia.localTimeStamp),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -68,8 +63,8 @@ class TrackingDeviceMediaList extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: const Text(
-                  'Camera has detected human in Garage',
+                title: Text(
+                  currentMedia.description,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
                 ),
                 subtitle: Column(
@@ -146,6 +141,10 @@ class TrackingDeviceMediaList extends StatelessWidget {
       );
       index++;
     }
+    mediaWidgetList.add(ActionButton(
+      text: 'Refresh List',
+      onPressed: onRefreshList,
+    ));
     return mediaWidgetList.reversed.toList();
   }
 

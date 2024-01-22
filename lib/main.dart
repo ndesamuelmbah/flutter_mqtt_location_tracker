@@ -44,19 +44,34 @@ import 'package:flutter_mqtt_location_tracker/models/envvars.dart';
 //This is only useful when customers are discussing with customer support.
 //flutter build apk --release --dart-define-from-file .env/envVars.json
 final audioPlayer = AudioPlayer();
-Future<void> playNotificationSound(RemoteMessage? message) async {
+Future<void> playNotificationSound(RemoteMessage? message,
+    {bool canPlaySound = true}) async {
   if (message != null) {
     var data = message.data;
     if (!data.containsKey('s3Url')) {
       //String? sound = message.notification?.android?.sound;
-      var sounds = ['wilsamsonnde', 'lansonnde', 'papaonly'];
-      int index = DateTime.now().second % 3;
-      var sound = sounds[index];
+      var garageSounds = ['wilsamsonnde', 'lansonnde', 'papaonly'];
+      var backyardSounds = [
+        'blessingbackyard',
+        'papamotionbackyard',
+        'shiphrahbackyard',
+        'wilsamsonbackyard'
+      ];
+      int secondNow = DateTime.now().second;
+      late String sound; // = garageSounds[index];
+      if ((data['description'] ?? '')
+          .toString()
+          .toLowerCase()
+          .contains('garage')) {
+        sound = garageSounds[secondNow % 3];
+      } else {
+        sound = backyardSounds[secondNow % 4];
+      }
+
       await audioPlayer.play(AssetSource('sounds/$sound.mp3'));
     } else {
       await saveNotification(data);
     }
-
     print(
         'Notification must be played now data = $data and map = ${message.toMap()}');
   }
@@ -309,7 +324,7 @@ void main() async {
     }
 
     _firebaseMessaging.getInitialMessage().then((RemoteMessage? message) async {
-      await playNotificationSound(message);
+      await playNotificationSound(message, canPlaySound: false);
       Map<String, dynamic>? notificationData = message?.data;
       print('getInitialMessage notificationData == $notificationData');
       if (notificationData?.isNotEmpty == true) {
@@ -357,7 +372,7 @@ void main() async {
       Map<String, dynamic> notificationData = message.data;
       print('onMessageOpenedApp notificationData == $notificationData');
 
-      await playNotificationSound(message);
+      await playNotificationSound(message, canPlaySound: false);
       // if (notificationData.isNotEmpty) {
       //   saveNotification(notificationData);
       // }

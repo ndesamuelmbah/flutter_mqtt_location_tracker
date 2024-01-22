@@ -63,7 +63,7 @@ class AuthService {
       if (deviceToken == null) {
         await generalBox.put(Keys.firebaseMessagingToken, deviceToken);
       }
-      await ApiRequest.genericPostDict('save_mosquitto_user', params: {
+      Map<String, dynamic> params = {
         "completeSignInMetaData": {
           'email': email,
           'password': password,
@@ -73,8 +73,11 @@ class AuthService {
           'phoneNumber': user.phoneNumber ?? '',
           'displayName': user.displayName ?? 'NOT SET',
         }
-      }).then((resp) async {
-        print('save_mosquitto_user response is $resp');
+      };
+      await ApiRequest.genericPostDict('save_mosquitto_user', params: params)
+          .then((resp) async {
+        // print('save_mosquitto_user response is $resp with');
+        // print('save_mosquitto_user input params $params');
         if (resp != null) {
           if (resp['NumberOfSuccessfulAdds'] > 0) {
             await generalBox.put(Keys.lastLinkedPasswordHash, passwordHash);
