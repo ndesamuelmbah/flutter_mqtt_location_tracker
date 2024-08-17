@@ -24,7 +24,7 @@ class ActionButton extends StatelessWidget {
       this.fontFamily,
       this.showBorder = true,
       this.borderWidth = 1,
-      this.radius = 8,
+      this.radius = 5.0,
       this.maxWidth = 300,
       this.minWidth = 20,
       this.height = 38,

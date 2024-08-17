@@ -14,7 +14,6 @@ import 'package:flutter_mqtt_location_tracker/models/firebase_auth_user.dart';
 import 'package:flutter_mqtt_location_tracker/models/pending_authentications.dart';
 import 'package:flutter_mqtt_location_tracker/screens/home_screen.dart';
 import 'package:flutter_mqtt_location_tracker/services/service_locator.dart';
-import 'package:flutter_mqtt_location_tracker/utils/keys.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/action_button.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/action_card.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/progress_indicator.dart';

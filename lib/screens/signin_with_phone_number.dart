@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:flutter_mqtt_location_tracker/api/api_requests.dart';
 import 'package:flutter_mqtt_location_tracker/utils/general_utils.dart';
 import 'package:flutter_mqtt_location_tracker/screens/phone_auth.dart';
 import 'package:flutter_mqtt_location_tracker/utils/widget_helpers.dart';
@@ -146,6 +147,20 @@ class SignInWithPhoneNumberState extends State<SignInWithPhoneNumber> {
             ),
           ],
         ),
+
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(vertical: 8.0),
+        //   child: ActionButton(
+        //       text: 'Test Api Code',
+        //       color: Colors.blue.shade800,
+        //       fontWeight: FontWeight.bold,
+        //       onPressed: () async {
+        //         final results = await ApiRequest.genericPost(
+        //             'delete_user_in_mysql_db',
+        //             params: {'firebaseId': 'firebaseId', 'userId': '3'});
+        //         print('Results: $results');
+        //       }),
+        // ),
         const SizedBox(
           height: 50,
         ),

@@ -1,15 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_mqtt_location_tracker/screens/home_screen_with_bg.dart';
+import 'package:flutter_mqtt_location_tracker/widgets/signin_with_email_and_password_form.dart';
 import 'package:get_it/get_it.dart';
 
 import 'package:logging/logging.dart';
-import 'package:flutter_mqtt_location_tracker/api/api_requests.dart';
 import 'package:flutter_mqtt_location_tracker/cloud_firestore/firestore_db.dart';
 import 'package:flutter_mqtt_location_tracker/models/envvars.dart';
 import 'package:flutter_mqtt_location_tracker/models/firebase_auth_user.dart';
-import 'package:flutter_mqtt_location_tracker/models/registered_phone_numbers.dart';
 import 'package:flutter_mqtt_location_tracker/screens/enter_user_name.dart';
 import 'package:flutter_mqtt_location_tracker/screens/home_screen.dart';
 import 'package:flutter_mqtt_location_tracker/services/service_locator.dart';
@@ -73,24 +72,33 @@ class StartPhoneVerificationState extends State<StartPhoneVerification> {
       _isLoading = false;
       setState(() {});
       var user = _auth.currentUser;
-      if (user != null && user.email.isNullOrWhiteSpace) {
-        await linkUserWithEmail(user);
-      } else if (credential.user?.email.isNullOrWhiteSpace == true) {
-        await linkUserWithEmail(credential.user!);
-      } else {
-        final uid = user?.uid ?? credential.user?.uid ?? '';
-        final userRef = await FirestoreDB.customersRef.doc(uid).get();
-        final userMap = userRef.data()! as Map<String, dynamic>;
-        generalBox.put(
-            Keys.firebaseAuthUser, FirebaseAuthUser.fromJson(userMap));
-      }
+      // if (user != null && user.email.isNullOrWhiteSpace) {
+      //   await linkUserWithEmail(user);
+      // } else if (credential.user?.email.isNullOrWhiteSpace == true) {
+      //   await linkUserWithEmail(credential.user!);
+      // } else {
+      final firebaseAuthUser =
+          FirebaseAuthUser.fromCurrentUser(credential.user!);
+      final uid = user?.uid ?? credential.user?.uid ?? '';
+      await FirestoreDB.customersRef
+          .doc(uid)
+          .set(firebaseAuthUser.toJson(), SetOptions(merge: true));
+      generalBox.put(Keys.firebaseAuthUser, firebaseAuthUser);
+      // }
 
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) {
             return user?.displayName.isNullOrWhiteSpace == true
                 ? const EnterUserNameScreen()
-                : const HomeScreen();
+                : ((user?.email ?? '').isNullOrWhiteSpace
+                    ? SignInWithEmailAndPasswordForm(
+                        autoSignIn: false,
+                        onGoBack: () {},
+                        onForgotPassword: () {},
+                        onWantToSignup: () {},
+                      )
+                    : const HomeScreen());
           },
         ),
       );
@@ -171,93 +179,91 @@ class StartPhoneVerificationState extends State<StartPhoneVerification> {
         automaticallyImplyLeading: true,
         title: const Center(child: Text('Phone Verification')),
       ),
-      body: Center(
-        child: Container(
-          constraints: mobileScreenBox,
-          margin: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
+      body: Container(
+        constraints: mobileScreenBox,
+        margin: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              constraints: const BoxConstraints(minHeight: 70),
+              decoration: containerDecoration,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    'Verify your phone number (${widget.phoneNumber})',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18.0),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            if (_isCodeSent)
               Container(
                 constraints: const BoxConstraints(minHeight: 70),
                 decoration: containerDecoration,
                 child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      'Verify your phone number (${widget.phoneNumber})',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18.0),
-                    ),
+                  child: Text(
+                    'We have sent a verification code to ${widget.phoneNumber}.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18.0),
                   ),
                 ),
               ),
-              const SizedBox(height: 16.0),
-              if (_isCodeSent)
-                Container(
-                  constraints: const BoxConstraints(minHeight: 70),
-                  decoration: containerDecoration,
-                  child: Center(
-                    child: Text(
-                      'We have sent a verification code to ${widget.phoneNumber}.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18.0),
-                    ),
-                  ),
-                ),
-              if (!_isCodeVerified && _isCodeSent)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 16.0),
-                    Form(
-                      key: _formKey,
-                      child: Container(
-                        decoration: containerDecoration,
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              labelText: 'Verification Code (6 digit)',
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 18, vertical: 10)),
-                          controller: _codeController,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          //maxLength: 6,
-                          //maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                          keyboardType: TextInputType.number,
-                          validator: validatePinCode,
-                        ),
+            if (!_isCodeVerified && _isCodeSent)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 16.0),
+                  Form(
+                    key: _formKey,
+                    child: Container(
+                      decoration: containerDecoration,
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            labelText: 'Verification Code (6 digit)',
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 10)),
+                        controller: _codeController,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        //maxLength: 6,
+                        //maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        keyboardType: TextInputType.number,
+                        validator: validatePinCode,
                       ),
                     ),
-                    const SizedBox(height: 16.0),
-                    _isLoading
-                        ? const LoadingProgressIndicator()
-                        : ActionButton(
-                            text: 'Submit',
-                            color: Colors.blue.shade800,
-                            fontWeight: FontWeight.bold,
-                            radius: 15,
-                            onPressed: _submitVerificationCode,
-                          ),
-                  ],
-                ),
-              if (!_isLoading && !_isCodeSent)
-                ActionButton(
-                  text: 'Request Verification Code',
-                  color: Colors.blue.shade800,
-                  fontWeight: FontWeight.bold,
-                  radius: 15,
-                  onPressed: _verifyPhoneNumber,
-                ),
-              if (_isCodeVerified)
-                Text(
-                  'Phone number has been verified!',
-                  style:
-                      TextStyle(fontSize: 18.0, color: Colors.green.shade700),
-                ),
-            ],
-          ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  _isLoading
+                      ? const LoadingProgressIndicator()
+                      : ActionButton(
+                          text: 'Submit',
+                          color: Colors.blue.shade800,
+                          fontWeight: FontWeight.bold,
+                          radius: 15,
+                          onPressed: _submitVerificationCode,
+                        ),
+                ],
+              ),
+            if (!_isLoading && !_isCodeSent)
+              ActionButton(
+                text: 'Request Verification Code',
+                color: Colors.blue.shade800,
+                fontWeight: FontWeight.bold,
+                radius: 15,
+                onPressed: _verifyPhoneNumber,
+              ),
+            if (_isCodeVerified)
+              Text(
+                'Phone number has been verified!',
+                style: TextStyle(fontSize: 18.0, color: Colors.green.shade700),
+              ),
+          ],
         ),
       ),
     );

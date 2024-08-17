@@ -10,7 +10,7 @@ class FirebaseAuthUser {
   @HiveField(0)
   final String uid;
   @HiveField(1)
-  final String email;
+  final String? email;
   @HiveField(2)
   final String? displayName;
   @HiveField(3)

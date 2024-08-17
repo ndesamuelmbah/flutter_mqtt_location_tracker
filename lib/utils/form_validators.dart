@@ -93,7 +93,7 @@ String? validateDate(String? val) {
   return null;
 }
 
-String bautifyName(String rawName) {
+String beautifyName(String rawName) {
   final names = removeDiacritics(rawName.trim())
       .replaceAll(RegExp(r'\s+'), ' ')
       .split(' ')

@@ -60,24 +60,25 @@ class AuthService {
     final lastLinkedPasswordHash = generalBox.get(Keys.lastLinkedPasswordHash);
     if (lastLinkedPasswordHash != passwordHash) {
       String? deviceToken = await FirebaseMessaging.instance.getToken();
-      if (deviceToken == null) {
+      if (deviceToken != null) {
         await generalBox.put(Keys.firebaseMessagingToken, deviceToken);
       }
+
       Map<String, dynamic> params = {
         "completeSignInMetaData": {
           'email': email,
           'password': password,
           'firebaseMessagingTokens': deviceToken ?? '',
-          'username': user.email ?? '',
+          'userName': user.email ?? '',
           'uid': user.uid,
           'phoneNumber': user.phoneNumber ?? '',
           'displayName': user.displayName ?? 'NOT SET',
         }
       };
-      await ApiRequest.genericPostDict('save_mosquitto_user', params: params)
+      await ApiRequest.genericPostDict('save_user_in_database', params: params)
           .then((resp) async {
-        // print('save_mosquitto_user response is $resp with');
-        // print('save_mosquitto_user input params $params');
+        print('save_user_in_database response is $resp with');
+        print('save_user_in_database input params $params');
         if (resp != null) {
           if (resp['NumberOfSuccessfulAdds'] > 0) {
             await generalBox.put(Keys.lastLinkedPasswordHash, passwordHash);

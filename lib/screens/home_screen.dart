@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 // import 'package:background_fetch/background_fetch.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import 'package:flutter_mqtt_location_tracker/models/device_location.dart';
 import 'package:flutter_mqtt_location_tracker/models/firebase_auth_user.dart';
 import 'package:flutter_mqtt_location_tracker/models/tracking_device_media.dart';
 import 'package:flutter_mqtt_location_tracker/mqtt_handler/mqtt_handler.dart';
+import 'package:flutter_mqtt_location_tracker/screens/authentication_screen.dart';
 import 'package:flutter_mqtt_location_tracker/screens/signin_with_phone_number.dart';
 import 'package:flutter_mqtt_location_tracker/screens/tracking_devices_media_list.dart';
 import 'package:flutter_mqtt_location_tracker/services/auth_service.dart';
@@ -435,9 +437,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 10),
                 ActionButton(
                     onPressed: () async {
-                      await FirebaseMessaging.instance.getToken().then((value) {
-                        print('Token is "$value"');
-                      });
+                      // await FirebaseMessaging.instance.getToken().then((value) {
+                      //   print('Token is "$value"');
+                      // });
+                      var cu = FirebaseAuth.instance.currentUser?.toString();
+                      print('Token is "$cu"');
+                      // ApiRequest.internalPrint('Token is "Intu"');
+                      print('Token is "$cu"');
                       // Map<String, dynamic> inputData = {
                       //   'isAlarm': true,
                       //   'isolateId': 2,
@@ -512,11 +518,54 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 10),
                 ActionButton(
                     onPressed: () async {
-                      var p = generalBox.get(Keys.trackingDeviceMedia);
-                      print('Tracking device media is $p');
-                      print('Tracking device media lenght ${p.length()}');
+                      final perms =
+                          await Addresses.getLocationPermissionsGeolocation();
+                      if (perms != null) {
+                        //final location = await Geolocation.getCurrentPosition();
+                        final now = DateTime.now().millisecondsSinceEpoch;
+                        const LocationSettings locationSettings =
+                            LocationSettings(
+                                accuracy: LocationAccuracy.high,
+                                distanceFilter: 2);
+                        //StreamSubscription<Position> positionStream =
+                        Geolocator.getPositionStream(
+                                locationSettings: locationSettings)
+                            .listen((Position? position) {
+                          if (position != null) {
+                            final positionData = jsonEncode(position.toJson());
+                            print(positionData);
+                            // if(DateTime.now().millisecondsSinceEpoch> now+10000){
+                            //   print('Cancelling subscription');
+                            //   //positionStream.cancel();
+                            // }
+                            // mqttHandler
+                            //     .publishDeviceLocation(position.toJson());
+                            // if (kDebugMode) {
+                            //   print('Current position is $position}');
+                            // }
+                          }
+                        });
+                      }
+                      // var p = generalBox.get(Keys.trackingDeviceMedia);
+                      // print('Tracking device media is $p');
+                      // print('Tracking device media lenght ${p.length()}');
                     },
                     text: 'Test Button'),
+                const SizedBox(height: 10),
+                ActionButton(
+                    onPressed: () async {
+                      print(await FirebaseMessaging.instance.getToken());
+                      // await generalBox.clear();
+                      // await FirebaseAuth.instance.signOut();
+                      // if (mounted) {
+                      //   Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      //       builder: (context) =>
+                      //           const AuthenticationScreen()));
+                      // }
+                    },
+                    text: 'Reset this device'),
+                const SizedBox(height: 10),
+                ActionButton(onPressed: () async {}, text: 'Reset this device'),
                 const Text('Data received:',
                     style: TextStyle(color: Colors.black, fontSize: 25)),
                 ValueListenableBuilder<String>(

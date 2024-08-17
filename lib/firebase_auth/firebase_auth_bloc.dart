@@ -123,7 +123,7 @@ class FirebaseAuthBloc extends Bloc<AuthEvent, AuthState> {
           if (!firebaseAuthUser.passwordHash.isNullOrWhiteSpace &&
               !firebaseAuthUser.email.isNullOrWhiteSpace) {
             firebaseInstance.signInWithEmailAndPassword(
-                email: firebaseAuthUser.email,
+                email: firebaseAuthUser.email!,
                 password: decryptWithEncrypt(envVars.EMAIL_PASSWORD_HASH_KEY,
                     firebaseAuthUser.passwordHash!));
           } else {

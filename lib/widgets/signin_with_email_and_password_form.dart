@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mqtt_location_tracker/cloud_firestore/firestore_db.dart';
+import 'package:flutter_mqtt_location_tracker/models/envvars.dart';
 import 'package:flutter_mqtt_location_tracker/models/firebase_auth_user.dart';
 import 'package:flutter_mqtt_location_tracker/screens/enter_user_name.dart';
 import 'package:flutter_mqtt_location_tracker/screens/home_screen.dart';
@@ -20,6 +22,7 @@ import 'package:flutter_mqtt_location_tracker/widgets/custom_richtext_link.dart'
 import 'package:flutter_mqtt_location_tracker/widgets/default_center_container.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/warning_widget.dart';
 import 'package:get_it/get_it.dart';
+import 'package:logging/logging.dart';
 
 class SignInWithEmailAndPasswordForm extends StatefulWidget {
   const SignInWithEmailAndPasswordForm(
@@ -42,6 +45,7 @@ class SignInFormState extends State<SignInWithEmailAndPasswordForm> {
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
   String? errorMessage, errorTitle;
+  final logger = Logger('SignInWithEmailAndPasswordForm');
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -54,11 +58,32 @@ class SignInFormState extends State<SignInWithEmailAndPasswordForm> {
       await generalBox.put(Keys.firebaseMessagingToken, value);
     });
     if (widget.autoSignIn) {
-      Future.delayed(const Duration(seconds: 5)).then((value) {
-        _emailController.text = 'fastexpay@gmail.com';
-        _passwordController.text = '24April@91';
-        _signIn();
-      });
+      // Future.delayed(const Duration(seconds: 5)).then((value) {
+      //   _emailController.text = 'fastexpay@gmail.com';
+      //   _passwordController.text = '24April@91';
+      //   _signIn();
+      // });
+    }
+  }
+
+  Future linkUserWithEmail(User user, String email, String password) async {
+    try {
+      if (user.email == null) {
+        AuthCredential emailCredential = EmailAuthProvider.credential(
+          email: email,
+          password: password,
+        );
+        final newCreds = await user.linkWithCredential(emailCredential);
+
+        var updatedUser = FirebaseAuthUser.fromCurrentUser(newCreds.user!);
+        var firebaseAuthUserMap = updatedUser.toJson();
+        generalBox.put(Keys.firebaseAuthUser,
+            FirebaseAuthUser.fromJson(firebaseAuthUserMap));
+        final userRef = FirestoreDB.customersRef.doc(user.uid);
+        await userRef.set(firebaseAuthUserMap, SetOptions(merge: true));
+      }
+    } catch (error, stackTrace) {
+      logger.severe(error, stackTrace);
     }
   }
 
@@ -72,15 +97,51 @@ class SignInFormState extends State<SignInWithEmailAndPasswordForm> {
         isLoading = true;
       });
       try {
-        final cred = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: email, password: password);
+        print('Signing in with email and password');
+        // try {
+        //   await FirebaseAuth.instance.signOut();
+        //   print('Completed sign out');
+        // } catch (e) {
+        //   print('Sign out error : $e');
+        // }
+        User user = FirebaseAuth.instance.currentUser!;
+        //await linkUserWithEmail(FirebaseAuth.instance.currentUser!, email, password);
+        AuthCredential emailCredential = EmailAuthProvider.credential(
+          email: email,
+          password: password,
+        );
+        final cred = await user.linkWithCredential(emailCredential);
 
+        // final cred = await FirebaseAuth.instance
+        //     .signInWithEmailAndPassword(email: email, password: password);
+        print('User is signed in');
         if (cred.user != null) {
+          final user = cred.user!;
+
+          final envVars = generalBox.get(Keys.envVars);
+          final passwordHash =
+              encryptWithEncrypt(envVars.EMAIL_PASSWORD_HASH_KEY, password);
+          Map<String, dynamic> userMap =
+              FirebaseAuthUser.fromCurrentUser(user).toJson();
+          userMap['passwordHash'] = passwordHash;
+          String? deviceToken = await FirebaseMessaging.instance.getToken();
+          userMap['firebaseMessagingToken'] = deviceToken;
+          await generalBox.put(
+              Keys.firebaseAuthUser, FirebaseAuthUser.fromJson(userMap));
+          if (deviceToken != null) {
+            await generalBox.put(Keys.firebaseMessagingToken, deviceToken);
+          }
+          print('User Extracted and saved as $userMap');
+          await FirestoreDB().createUser(userMap, user.uid);
+
+          print('User is signed in');
           await AuthService.completeSignInWithEmailAndPasswordCleanUp(
               cred.user!, email, password);
 
           if (mounted) {
-            final user = cred.user!;
+            setState(() {
+              isLoading = false;
+            });
             if (user.displayName.isNullOrWhiteSpace) {
               Navigator.push(
                   context,
@@ -90,25 +151,6 @@ class SignInFormState extends State<SignInWithEmailAndPasswordForm> {
               Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (_) => const HomeScreen()));
             }
-          }
-          Map<String, dynamic>? userMap =
-              await FirestoreDB.getUserInfoByFirebaseId(cred.user!.uid, 'uid');
-          final envVars = generalBox.get(Keys.envVars);
-          if (userMap != null) {
-            final passwordHash =
-                encryptWithEncrypt(envVars.EMAIL_PASSWORD_HASH_KEY, password);
-            userMap['passwordHash'] = passwordHash;
-            var authUser = FirebaseAuthUser.fromJson(userMap);
-            await generalBox.put(Keys.firebaseAuthUser, authUser);
-            await FirestoreDB.updateUser(userMap, cred.user!.uid);
-          } else {
-            var authUser = FirebaseAuthUser.fromCurrentUser(cred.user!);
-            authUser.passwordHash =
-                encryptWithEncrypt(envVars.EMAIL_PASSWORD_HASH_KEY, password);
-            Map<String, dynamic> jsonUser = authUser.toJson();
-
-            await generalBox.put(Keys.firebaseAuthUser, authUser);
-            await FirestoreDB.updateUser(jsonUser, cred.user!.uid);
           }
           if (cred.user == null) {
             errorTitle = 'No Account for this email';

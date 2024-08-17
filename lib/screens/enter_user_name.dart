@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_mqtt_location_tracker/screens/home_screen_with_bg.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_mqtt_location_tracker/widgets/signin_with_email_and_password_form.dart';
+
 import 'package:get_it/get_it.dart';
 
 import 'package:logging/logging.dart';
@@ -46,7 +48,7 @@ class EnterUserNameScreenState extends State<EnterUserNameScreen> {
     try {
       // Update user profile data in Firestore
       User? user = FirebaseAuth.instance.currentUser;
-      userName = bautifyName(userName);
+      userName = beautifyName(userName);
       if (user != null) {
         final userRef = FirestoreDB.customersRef.doc(user.uid);
         final savedUser = generalBox.get(Keys.firebaseAuthUser) ??
@@ -55,6 +57,9 @@ class EnterUserNameScreenState extends State<EnterUserNameScreen> {
 
         generalBox.put(Keys.firebaseAuthUser,
             FirebaseAuthUser.fromJson(firebaseAuthUserMap));
+        final firebaseMessagingToken =
+            await FirebaseMessaging.instance.getToken();
+        firebaseAuthUserMap['firebaseMessagingToken'] = firebaseMessagingToken;
         // getFirebaseAuthUser(context).isTreasury
         // print('User Extracted and saved as $firebaseAuthUserMap');
         //await Future.delayed(const Duration(seconds: 5));
@@ -70,7 +75,12 @@ class EnterUserNameScreenState extends State<EnterUserNameScreen> {
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
+              builder: (context) => SignInWithEmailAndPasswordForm(
+                autoSignIn: false,
+                onGoBack: () {},
+                onForgotPassword: () {},
+                onWantToSignup: () {},
+              ),
             ),
           );
         }
@@ -95,12 +105,13 @@ class EnterUserNameScreenState extends State<EnterUserNameScreen> {
           textAlign: TextAlign.center,
         )),
       ),
-      body: SingleChildScrollView(
-          child: DefaultCenterContainer(
+      body: DefaultCenterContainer(
         children: [
           Form(
             key: _formKey,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   decoration: containerDecoration,
@@ -136,7 +147,7 @@ class EnterUserNameScreenState extends State<EnterUserNameScreen> {
             ),
           )
         ],
-      )),
+      ),
     );
   }
 }

@@ -1,3 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/*,@raw/papaonly,@raw/wilsamsonnde,@raw/lansonnde,@raw/blessingbackyard,@raw/papamotionbackyard,@raw/shiphrahbackyard,@raw/wilsamsonbackyard" />
+    tools:keep="@drawable/*,@raw/papaonly,@raw/wilsamsonnde,@raw/lansonnde,@raw/blessingbackyard,@raw/papamotionbackyard,@raw/shiphrahbackyard,@raw/wilsamsonbackyard,@raw/coin_prices_increase,@raw/coin_prices_decrease" />

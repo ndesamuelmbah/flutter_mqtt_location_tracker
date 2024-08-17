@@ -94,6 +94,9 @@ class ApiRequest {
     http.Response response = await httpsClient().post(uri,
         body: params,
         headers: getStandardHeaders(isPostRequest: true, headers: header));
+
+    print(response.body);
+    print(response.statusCode);
     return getApiRes(response);
   }
 
@@ -121,6 +124,9 @@ class ApiRequest {
     Uri uri = Uri.parse(url);
     http.Response response = await httpsClient()
         .get(uri, headers: getStandardHeaders(headers: header));
+
+    print(response.body);
+    print(response.statusCode);
     return getApiRes(response);
   }
 

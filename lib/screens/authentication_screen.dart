@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mqtt_location_tracker/screens/signin_with_phone_number.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/choose_authentication_method.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/enter_email_to_reset_password.dart';
-import 'package:flutter_mqtt_location_tracker/widgets/signin_form.dart';
+import 'package:flutter_mqtt_location_tracker/widgets/signin_with_email_and_password_form.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/signup_form.dart';
 
 class AuthenticationScreen extends StatefulWidget {

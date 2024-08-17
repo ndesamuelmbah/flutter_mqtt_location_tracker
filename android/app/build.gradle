@@ -28,7 +28,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.samuelnde.flutter_mqtt_location_tracker"
-    compileSdkVersion 33
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {

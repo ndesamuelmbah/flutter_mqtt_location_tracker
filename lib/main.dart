@@ -14,6 +14,8 @@ import 'package:flutter_mqtt_location_tracker/models/device_location.dart';
 import 'package:flutter_mqtt_location_tracker/models/tracking_device_media.dart';
 import 'package:flutter_mqtt_location_tracker/screens/authentication_screen.dart';
 import 'package:flutter_mqtt_location_tracker/screens/home_screen.dart';
+import 'package:flutter_mqtt_location_tracker/screens/signin_with_phone_number.dart';
+import 'package:flutter_mqtt_location_tracker/widgets/signin_with_email_and_password_form.dart';
 import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -57,6 +59,7 @@ Future<void> playNotificationSound(RemoteMessage? message,
         'shiphrahbackyard',
         'wilsamsonbackyard'
       ];
+      var trading_alert = 'trading_alert';
       int secondNow = DateTime.now().second;
       late String sound; // = garageSounds[index];
       if ((data['description'] ?? '')
@@ -69,6 +72,12 @@ Future<void> playNotificationSound(RemoteMessage? message,
       }
 
       await audioPlayer.play(AssetSource('sounds/$sound.mp3'));
+    } else if (data.containsKey('cryptoPrices')) {
+      if (data['direction'] == 'increasing') {
+        await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.m4a'));
+      } else if (data['direction'] == 'decreasing') {
+        await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.m4a'));
+      }
     } else {
       await saveNotification(data);
     }
@@ -434,9 +443,17 @@ class MyApp extends StatelessWidget {
       if (name?.isNullOrWhiteSpace == true) {
         return const EnterUserNameScreen();
       }
-      bool hasCompletedAuth = user.email.isNotNullAndNotEmpty;
+      bool hasCompletedAuth = user.email.isNotNullAndNotEmpty &&
+          !(user.email ?? '').endsWith('default.com');
       if (hasCompletedAuth) {
         return const HomeScreen();
+      } else {
+        SignInWithEmailAndPasswordForm(
+          autoSignIn: false,
+          onGoBack: () {},
+          onForgotPassword: () {},
+          onWantToSignup: () {},
+        );
       }
       return const EnterUserNameScreen();
     }
@@ -464,7 +481,8 @@ class MyApp extends StatelessWidget {
           if (state is UnAuthenticated) {
             print('State is UnAuthenticated');
             navigatorKey.currentState?.pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => navigateToHome()),
+              MaterialPageRoute(
+                  builder: (context) => SignInWithPhoneNumber(onGoBack: () {})),
               (route) => false,
             );
           }

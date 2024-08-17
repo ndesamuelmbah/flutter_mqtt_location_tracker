@@ -58,7 +58,7 @@ class GetChatsDir {
 
 class GeneralBox {
   hive.Box<dynamic>? box;
-  static String boxName = "generalBox";
+  static String boxName = "generalBoxName";
   static String notificationsList = "notificationsList";
   Future<hive.Box<dynamic>> openBox() async {
     if (box == null) {
@@ -81,6 +81,11 @@ class GeneralBox {
   get<T>(String key) {
     final val = box!.get(key) as T?;
     return val;
+  }
+
+  clear() async {
+    final wasCleared = await box!.clear();
+    print('wasCleared: $wasCleared');
   }
 
   get1(String key) {
