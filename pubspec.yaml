@@ -146,6 +146,8 @@ flutter:
     - assets/sounds/papamotionbackyard.mp3
     - assets/sounds/shiphrahbackyard.mp3
     - assets/sounds/wilsamsonbackyard.mp3
+    - assets/sounds/coin_prices_increase.mp3
+    - assets/sounds/coin_prices_decrease.mp3
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

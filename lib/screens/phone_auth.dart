@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_mqtt_location_tracker/api/api_requests.dart';
 import 'package:flutter_mqtt_location_tracker/widgets/signin_with_email_and_password_form.dart';
 import 'package:get_it/get_it.dart';
 
@@ -77,31 +79,66 @@ class StartPhoneVerificationState extends State<StartPhoneVerification> {
       // } else if (credential.user?.email.isNullOrWhiteSpace == true) {
       //   await linkUserWithEmail(credential.user!);
       // } else {
-      final firebaseAuthUser =
-          FirebaseAuthUser.fromCurrentUser(credential.user!);
       final uid = user?.uid ?? credential.user?.uid ?? '';
-      await FirestoreDB.customersRef
-          .doc(uid)
-          .set(firebaseAuthUser.toJson(), SetOptions(merge: true));
-      generalBox.put(Keys.firebaseAuthUser, firebaseAuthUser);
-      // }
-
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) {
-            return user?.displayName.isNullOrWhiteSpace == true
-                ? const EnterUserNameScreen()
-                : ((user?.email ?? '').isNullOrWhiteSpace
-                    ? SignInWithEmailAndPasswordForm(
-                        autoSignIn: false,
-                        onGoBack: () {},
-                        onForgotPassword: () {},
-                        onWantToSignup: () {},
-                      )
-                    : const HomeScreen());
+      final firebaseToken = await FirebaseMessaging.instance.getToken();
+      if ((user?.email ?? credential.user?.email).isNotNullAndNotEmpty) {
+        final userRef = FirestoreDB.customersRef.doc(uid);
+        await userRef.set(
+          {
+            'firebaseMessagingToken': firebaseToken,
+            'isOnline': true,
           },
-        ),
-      );
+          SetOptions(merge: true),
+        );
+        var userMap = (await userRef.get()).data()! as Map<String, dynamic>;
+        final authUser = FirebaseAuthUser.fromJson(userMap);
+        generalBox.put(Keys.firebaseAuthUser, authUser);
+        Map<String, dynamic> params = {
+          "updateUserMetaData": {
+            'email': authUser.email!,
+            'uid': authUser.uid,
+            'newFirebaseMessagingToken': firebaseToken ?? '',
+          }
+        };
+        await ApiRequest.genericPostDict('update_user_firebase_messaging_token',
+                params: params)
+            .then((resp) {});
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return const HomeScreen();
+              },
+            ),
+          );
+        }
+        return;
+      } else {
+        final firebaseAuthUser =
+            FirebaseAuthUser.fromCurrentUser(credential.user!);
+        await FirestoreDB.customersRef
+            .doc(uid)
+            .set(firebaseAuthUser.toJson(), SetOptions(merge: true));
+        generalBox.put(Keys.firebaseAuthUser, firebaseAuthUser);
+        // }
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) {
+              return user?.displayName.isNullOrWhiteSpace == true
+                  ? const EnterUserNameScreen()
+                  : ((user?.email ?? '').isNullOrWhiteSpace
+                      ? SignInWithEmailAndPasswordForm(
+                          autoSignIn: false,
+                          onGoBack: () {},
+                          onForgotPassword: () {},
+                          onWantToSignup: () {},
+                        )
+                      : const HomeScreen());
+            },
+          ),
+        );
+      }
     } catch (error, stackTrace) {
       logger.severe(error, stackTrace);
 

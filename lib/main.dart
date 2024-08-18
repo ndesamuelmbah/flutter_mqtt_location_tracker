@@ -50,7 +50,13 @@ Future<void> playNotificationSound(RemoteMessage? message,
     {bool canPlaySound = true}) async {
   if (message != null) {
     var data = message.data;
-    if (!data.containsKey('s3Url')) {
+    if (data.containsKey('cryptoPrices')) {
+      if (data['direction'] == 'increasing') {
+        await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.mp3'));
+      } else if (data['direction'] == 'decreasing') {
+        await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.mp3'));
+      }
+    } else if (!data.containsKey('s3Url')) {
       //String? sound = message.notification?.android?.sound;
       var garageSounds = ['wilsamsonnde', 'lansonnde', 'papaonly'];
       var backyardSounds = [
@@ -72,12 +78,6 @@ Future<void> playNotificationSound(RemoteMessage? message,
       }
 
       await audioPlayer.play(AssetSource('sounds/$sound.mp3'));
-    } else if (data.containsKey('cryptoPrices')) {
-      if (data['direction'] == 'increasing') {
-        await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.m4a'));
-      } else if (data['direction'] == 'decreasing') {
-        await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.m4a'));
-      }
     } else {
       await saveNotification(data);
     }
@@ -215,7 +215,7 @@ Future<void> setupFlutterLocalNotifications() async {
   }
   if (Platform.isIOS) {
     await getIt<FirebaseService>()
-        .firebaseMessaginInst
+        .firebaseMessagingInst
         .setForegroundNotificationPresentationOptions(
           alert: true,
           badge: true,
@@ -306,8 +306,8 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   if (!kIsWeb) {
     FirebaseMessaging _firebaseMessaging =
-        getIt<FirebaseService>().firebaseMessaginInst;
-    AndroidInitializationSettings initialzationSettingsAndroid =
+        getIt<FirebaseService>().firebaseMessagingInst;
+    AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/launcher_icon');
     final DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(onDidReceiveLocalNotification: (
@@ -327,7 +327,7 @@ void main() async {
       }
     });
     InitializationSettings initializationSettings = InitializationSettings(
-        android: initialzationSettingsAndroid, iOS: initializationSettingsIOS);
+        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
     if (!kIsWeb) {
       flutterLocalNotificationsPlugin.initialize(initializationSettings);
     }

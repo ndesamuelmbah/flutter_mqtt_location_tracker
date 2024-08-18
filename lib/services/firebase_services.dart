@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 class FirebaseService {
   final FirebaseAuth firebaseAuthInst = FirebaseAuth.instance;
-  final FirebaseMessaging firebaseMessaginInst = FirebaseMessaging.instance;
+  final FirebaseMessaging firebaseMessagingInst = FirebaseMessaging.instance;
   final FirebaseFirestore firestoreDatabaseInst = FirebaseFirestore.instance;
   final FirebaseDynamicLinks dynamicLinksInst = FirebaseDynamicLinks.instance;
 
