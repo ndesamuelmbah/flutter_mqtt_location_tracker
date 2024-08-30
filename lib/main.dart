@@ -52,7 +52,7 @@ Future<void> playNotificationSound(RemoteMessage? message,
     var data = message.data;
     if (data.containsKey('cryptoPrices')) {
       if (data['direction'] == 'increasing') {
-        await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.mp3'));
+        await audioPlayer.play(AssetSource('sounds/coin_prices_increase.mp3'));
       } else if (data['direction'] == 'decreasing') {
         await audioPlayer.play(AssetSource('sounds/coin_prices_decrease.mp3'));
       }
@@ -81,8 +81,6 @@ Future<void> playNotificationSound(RemoteMessage? message,
     } else {
       await saveNotification(data);
     }
-    print(
-        'Notification must be played now data = $data and map = ${message.toMap()}');
   }
 }
 
